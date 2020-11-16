@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/cevadev/node-advanced/issues"
   },
-  "homepage": "https://github.com/cevadev/node-advanced#readme"
+  "homepage": "https://github.com/cevadev/node-advanced#readme",
+  "dependencies": {
+    "pg": "8.5.1",
+    "pg-hstore": "2.3.3",
+    "sequelize": "6.3.5"
+  }
 }

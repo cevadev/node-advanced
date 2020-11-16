@@ -1,0 +1,8 @@
+Tenemos 2 tipos de objetos:
+1. Los modelos nativos de sequelize
+2. Los servicios
+
+En los servicios vamos a definir algunos metodos personalizados para realizar consultas de DB y serán los servicios 
+quienes consumiran los modelos de sequelize
+
+Paso 1: Definicion de modelos para Agent y Metrics
