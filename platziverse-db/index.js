@@ -1,5 +1,7 @@
 'use strict'
 
+const defaults = require('defaults');
+
 const setupDatabase = require('./lib/db.js');
 const setupAgentModel = require('./models/agent.js');
 const setupMetricModel = require('./models/metric.js');
@@ -7,6 +9,24 @@ const setupMetricModel = require('./models/metric.js');
 //exportamos una funcion async y que al ser llamada retornará unna promesa que al ser resuelva retorna los objetos Metric y Agent
 //el que llame esta funcion async debe hacer el control de errores
 module.exports = async function(config){
+    /**
+     * Redefinimos el objeto de configuracion con cierto valores por defecto (defaults). Si no le pasamos un objeto de configuracion
+     * automaticamente tomara nuestro objeto config con sus valores por defecto donde no se contectara a postgres
+     * sino que utilizara una bd en memoria sqlite
+     */
+    config = defaults(config, {
+        dialect: 'sqlite',
+        pool: {
+            max: 10,
+            min: 0,
+            idle: 10000
+        },
+        query: {
+            //cada uno de los queries deben devolver objetos json
+            raw: true
+        }
+    })
+
     //obtenemos la instancia de sequelize, agent y metric models
     const sequelize = setupDatabase(config);
     const AgentModel = setupAgentModel(config);
