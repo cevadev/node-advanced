@@ -5,7 +5,7 @@ const Sequelize = require("sequelize");
 
 const setupDatabase = require("../lib/db.js");
 
-//exportamos una funcion
+//exportamos una funcion. recibimos un objeto de config, con la cual recibimos una instancia de la base de datos
 module.exports = function setupAgentModel(config) {
   const sequelize = setupDatabase(config);
 
@@ -16,7 +16,7 @@ module.exports = function setupAgentModel(config) {
     //especificamos las propiedades del modelo agent
     uuid: {
       type: Sequelize.STRING,
-      allowNull: false,
+      allowNull: false, //es decir será requerido
     },
     username: {
       type: Sequelize.STRING,

@@ -1,7 +1,6 @@
 "use strict";
 
 /**
- *
  * @param {*} AgentModel recibe el modelo de Agent
  */
 module.exports = function setupAgent(AgentModel) {
@@ -33,7 +32,7 @@ module.exports = function setupAgent(AgentModel) {
     return AgentModel.findById(id);
   }
 
-  /* function findByUuid(uuid) {
+  function findByUuid(uuid) {
     return AgentModel.findOne({
       where: {
         uuid,
@@ -60,14 +59,14 @@ module.exports = function setupAgent(AgentModel) {
         connected: true,
       },
     });
-  } */
+  }
 
   return {
     createOrUpdate,
     findById,
-    //findByUuid,
-    //findAll,
-    //findConnected,
-    //findByUsername,
+    findByUuid,
+    findAll,
+    findConnected,
+    findByUsername,
   };
 };

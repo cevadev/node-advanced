@@ -32,6 +32,14 @@ let AgentStub = null;
 let db = null;
 let sandbox = null;
 
+let connectedArgs = {
+  where: { connected: true },
+};
+
+let usernameArgs = {
+  where: { username: "platzi", connected: true },
+};
+
 let uuidArgs = {
   where: { uuid },
 };
@@ -56,6 +64,16 @@ test.beforeEach(async function () {
     hasMany: sandbox.spy(),
   };
 
+  //Model create Stub
+  AgentStub.create = sandbox.stub();
+  AgentStub.create.withArgs(newAgent).returns(
+    Promise.resolve({
+      toJSON() {
+        return newAgent;
+      },
+    })
+  );
+
   //Model update Stub
   AgentStub.update = sandbox.stub();
   AgentStub.update.withArgs(single, uuidArgs).returns(Promise.resolve(single));
@@ -75,6 +93,16 @@ test.beforeEach(async function () {
   AgentStub.findOne
     .withArgs(uuidArgs)
     .returns(Promise.resolve(agentFixtures.byId(id)));
+
+  // Model findAll Stub
+  AgentStub.findAll = sandbox.stub();
+  AgentStub.findAll.withArgs().returns(Promise.resolve(agentFixtures.all));
+  AgentStub.findAll
+    .withArgs(connectedArgs)
+    .returns(Promise.resolve(agentFixtures.connected));
+  AgentStub.findAll
+    .withArgs(usernameArgs)
+    .returns(Promise.resolve(agentFixtures.platzi));
 
   //const setupDatabase = require('../index.js');
   const setupDatabase = proxyquire("../index.js", {
@@ -128,6 +156,55 @@ test.serial("Agent#findById", async (t) => {
   t.deepEqual(agent, agentFixtures.byId(id), "should be the same");
 });
 
+test.serial("Agent#findByUuid", async (t) => {
+  let agent = await db.Agent.findByUuid(uuid);
+
+  t.true(AgentStub.findOne.called, "findOne should be called on model");
+  t.true(AgentStub.findOne.calledOnce, "findOne should be called once");
+  t.true(
+    AgentStub.findOne.calledWith(uuidArgs),
+    "findOne should be called with uuid args"
+  );
+
+  t.deepEqual(agent, agentFixtures.byUuid(uuid), "agent should be the same");
+});
+
+test.serial("Agent#findConnected", async (t) => {
+  let agents = await db.Agent.findConnected();
+
+  t.true(AgentStub.findAll.called, "findAll should be called on model");
+  t.true(AgentStub.findAll.calledOnce, "findAll should be called once");
+  t.true(
+    AgentStub.findAll.calledWith(connectedArgs),
+    "findAll should be called with connected args"
+  );
+
+  t.is(
+    agents.length,
+    agentFixtures.connected.length,
+    "agents should be the same amount"
+  );
+  t.deepEqual(agents, agentFixtures.connected, "agents should be the same");
+});
+
+test.serial("Agent#findByUsername", async (t) => {
+  let agents = await db.Agent.findByUsername("platzi");
+
+  t.true(AgentStub.findAll.called, "findAll should be called on model");
+  t.true(AgentStub.findAll.calledOnce, "findAll should be called once");
+  t.true(
+    AgentStub.findAll.calledWith(usernameArgs),
+    "findAll should be called with username args"
+  );
+
+  t.is(
+    agents.length,
+    agentFixtures.platzi.length,
+    "agents should be the same amount"
+  );
+  t.deepEqual(agents, agentFixtures.platzi, "agents should be the same");
+});
+
 //Pasamos la informacion de un Agent, si no existe el Agent en la BD lo crea, si existe lo actualiza y retorna la instancia
 test.serial("Agent#createOrUpdate - exists", async (t) => {
   let agent = await db.Agent.createOrUpdate(single);
@@ -138,4 +215,25 @@ test.serial("Agent#createOrUpdate - exists", async (t) => {
 
   //garantizamos que sea completamente igual el agent que retorna la funcion con el agente que intentamos crear
   t.deepEqual(agent, single, "agent should be the same");
+});
+
+test.serial("Agent#createOrUpdate - new", async (t) => {
+  let agent = await db.Agent.createOrUpdate(newAgent);
+
+  t.true(AgentStub.findOne.called, "findOne should be called on model");
+  t.true(AgentStub.findOne.calledOnce, "findOne should be called once");
+  t.true(
+    AgentStub.findOne.calledWith({
+      where: { uuid: newAgent.uuid },
+    }),
+    "findOne should be called with uuid args"
+  );
+  t.true(AgentStub.create.called, "create should be called on model");
+  t.true(AgentStub.create.calledOnce, "create should be called once");
+  t.true(
+    AgentStub.create.calledWith(newAgent),
+    "create should be called with specified args"
+  );
+
+  t.deepEqual(agent, newAgent, "agent should be the same");
 });

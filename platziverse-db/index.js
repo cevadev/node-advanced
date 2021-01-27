@@ -4,9 +4,13 @@
 
 const defaults = require("defaults");
 
+//funcion para la configuracion de la BD
 const setupDatabase = require("./lib/db.js");
+
 const setupAgentModel = require("./models/agent.js");
+
 const setupMetricModel = require("./models/metric.js");
+
 const setupAgent = require("./lib/agent.js");
 
 //exportamos una funcion async y que al ser llamada retornará unna promesa que al ser resuelva retorna los objetos Metric y Agent
@@ -30,9 +34,11 @@ module.exports = async function (config) {
     },
   });
 
-  //obtenemos la instancia de sequelize, agent y metric models
+  //obtenemos la instancia de sequelize, agent y metric models y creamos el singleton
   const sequelize = setupDatabase(config);
+  //funcion para la configuracion del modelo Agent
   const AgentModel = setupAgentModel(config);
+  //funcion para la configuración del modelo Metric
   const MetriModel = setupMetricModel(config);
 
   //empezamos a definir las relaciones entre las entidades Agent y Metric
