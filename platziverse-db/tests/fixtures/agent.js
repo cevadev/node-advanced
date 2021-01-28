@@ -1,5 +1,5 @@
 "use strict";
-
+//creamos el objeto Agent
 const agent = {
   id: 1,
   uuid: "yyy-yyy-yyy",
@@ -12,6 +12,7 @@ const agent = {
   updatedAt: new Date(),
 };
 
+//creamos un arreglo de agents,para lista todos los agentes conectados
 const agents = [
   //el agent que acabamos de crear
   agent,
@@ -25,14 +26,18 @@ const agents = [
   extend(agent, { id: 4, uuid: "yyy-yyy-yyz", username: "test" }),
 ];
 
+//funcion que nos permite extender un objeto, clonarlo y aplicarle ciertos valores.
 function extend(obj, values) {
+  //al objeto vacion le aplicamos todas las propiedades del objeto que queremos clonar
   const clone = Object.assign({}, obj);
+  //retornamos el objeto clonado con los valores pasados
   return Object.assign(clone, values);
 }
 
 module.exports = {
   //exporta un agent
   single: agent,
+  //definimos las funciones
   //exporta todos los agents
   all: agents,
   //exporta solo agents connected

@@ -2,6 +2,7 @@
 
 "use strict";
 
+//nos permite crear un objeto de configuracion de BD por defecto
 const defaults = require("defaults");
 
 //funcion para la configuracion de la BD
@@ -39,11 +40,11 @@ module.exports = async function (config) {
   //funcion para la configuracion del modelo Agent
   const AgentModel = setupAgentModel(config);
   //funcion para la configuración del modelo Metric
-  const MetriModel = setupMetricModel(config);
+  const MetricModel = setupMetricModel(config);
 
   //empezamos a definir las relaciones entre las entidades Agent y Metric
-  AgentModel.hasMany(MetriModel);
-  MetriModel.belongsTo(AgentModel);
+  AgentModel.hasMany(MetricModel);
+  MetricModel.belongsTo(AgentModel);
 
   /**
    * validamos que la BD esta bien configurada
