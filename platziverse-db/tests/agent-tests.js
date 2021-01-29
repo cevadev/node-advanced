@@ -41,6 +41,7 @@ let db = null;
 //vuelve a aparecer desde cero
 let sandbox = null;
 
+//Argumentos para trabajar con los stubs
 let connectedArgs = {
   where: { connected: true },
 };
@@ -61,6 +62,7 @@ let newAgent = {
   pid: 0,
   connected: false,
 };
+// fin de los argumentos
 
 /**
  * Antes de la ejecucion de cada test ejecuta la funcion para configurar la BD.
@@ -95,6 +97,7 @@ test.beforeEach(async function () {
    * que cuando la resuelva debe retornar agent fixtures by id
    */
   AgentStub.findById
+    //indicamos qe cuando llamemos a la funcion findById con un argumento debe retornar un promesa del agentFixture.byId()
     .withArgs(id)
     .returns(Promise.resolve(agentFixtures.byId(id)));
 
@@ -166,6 +169,7 @@ test.serial("Agent#findById", async (t) => {
     AgentStub.findById.calledWith(id),
     "findById should be called with specified id"
   );
+  //comparamos que nuestro agent sea igual al agent del fixture
   t.deepEqual(agent, agentFixtures.byId(id), "should be the same");
 });
 
@@ -231,6 +235,7 @@ test.serial("Agent#createOrUpdate - exists", async (t) => {
 });
 
 test.serial("Agent#createOrUpdate - new", async (t) => {
+  //newAgent -> objeto single clonado del archivo  fixtures/agent.js
   let agent = await db.Agent.createOrUpdate(newAgent);
 
   t.true(AgentStub.findOne.called, "findOne should be called on model");
@@ -248,5 +253,6 @@ test.serial("Agent#createOrUpdate - new", async (t) => {
     "create should be called with specified args"
   );
 
+  //nos aseguramos que sean completamente igual el agente que retorna la función al agente que intentamos crear
   t.deepEqual(agent, newAgent, "agent should be the same");
 });

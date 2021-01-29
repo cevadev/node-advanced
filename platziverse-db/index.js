@@ -12,6 +12,8 @@ const setupAgentModel = require("./models/agent.js");
 
 const setupMetricModel = require("./models/metric.js");
 
+const setupMetric = require("./lib/metric.js");
+
 const setupAgent = require("./lib/agent.js");
 
 //exportamos una funcion async y que al ser llamada retornará unna promesa que al ser resuelva retorna los objetos Metric y Agent
@@ -67,7 +69,7 @@ module.exports = async function (config) {
   //sequelize.sync()
 
   const Agent = setupAgent(AgentModel);
-  const Metric = {};
+  const Metric = setupMetric(MetricModel, AgentModel);
 
   /**
    * cuando se llame a nuestra funcion, retornamos los objetos. Al momento de crearla Bd y sus tablas Sequelize automaticamente

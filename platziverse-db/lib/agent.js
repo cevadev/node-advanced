@@ -1,6 +1,7 @@
 "use strict";
 
 /**
+ * Servicio Agent
  * @param {*} AgentModel recibe el modelo de Agent
  */
 module.exports = function setupAgent(AgentModel) {
