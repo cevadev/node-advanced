@@ -20,21 +20,23 @@ const properties = require("./config.js");
  * esa promesa se va a resolver y asi obtenemos el valor.
  */
 const prompt = inquirer.createPromptModule();
-
+//si en el comando npm run setup le agregamos el --y automaticamente borra y vuelve a crear la bd
 async function setup() {
-  //recibimos la respuesta del usuario y esperamos a que la promesa se resuelva. Pasamos las preguntas como un arreglo
-  const answer = await prompt([
-    {
-      type: "confirm",
-      name: "setup", //la respuesta se guarda en una propiedad llamada setup
-      message:
-        "This will destroy your current data base. Are you sure to do that?",
-    },
-  ]);
+  if (process.argv.pop() != "--y") {
+    //recibimos la respuesta del usuario y esperamos a que la promesa se resuelva. Pasamos las preguntas como un arreglo
+    const answer = await prompt([
+      {
+        type: "confirm",
+        name: "setup", //la respuesta se guarda en una propiedad llamada setup
+        message:
+          "This will destroy your current data base. Are you sure to do that?",
+      },
+    ]);
 
-  //si la respuesta es false, si es true continua con la ejecucion del codigo y se elimina y vuelve a crear la BD
-  if (!answer.setup) {
-    return console.info("Nothing will happen");
+    //si la respuesta es false, si es true continua con la ejecucion del codigo y se elimina y vuelve a crear la BD
+    if (!answer.setup) {
+      return console.info("Nothing will happen");
+    }
   }
 
   //definimos el objeto de configuracion que necesita sequelize
