@@ -13,6 +13,9 @@ const db = require("./index.js");
 //objeto de configuracion para sequelize
 const properties = require("./config.js");
 
+//objeto de configuracion para la base de datos
+const config = require("./utils/configdb.js")(); //()-> pasamos por defecto true
+
 //Script de inicializacion de base de datos
 
 /**
@@ -40,7 +43,7 @@ async function setup() {
   }
 
   //definimos el objeto de configuracion que necesita sequelize
-  const config = {
+  /* const config = {
     //nombre de BD
     database: properties.databaseName,
     username: properties.username,
@@ -48,15 +51,15 @@ async function setup() {
     host: properties.host,
     port: properties.port,
     /**Siquelize puede conectarse a multiples tipos de BD deacuerdo al tipo de BD se ebe especificar el dialecto */
-    dialect: properties.dialect,
-    //cada mensaje que llega del login lo debe ejecutar como una function
-    logging: function (message) {
-      debug(message);
-    },
-    //setup: true -> indicamos a sequelize que sincronize la BD
-    setup: true,
-    operatorAliases: false,
-  };
+  //dialect: properties.dialect,
+  //cada mensaje que llega del login lo debe ejecutar como una function
+  // logging: function (message) {
+  //  debug(message);
+  //},
+  //setup: true -> indicamos a sequelize que sincronize la BD
+  // setup: true,
+  // operatorAliases: false,
+  //}; */
 
   await db(config).catch((error) => {
     console.error(`${chalk.red("[fatal error]")} ${error.message}`);
