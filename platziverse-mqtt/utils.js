@@ -5,14 +5,14 @@
 function parsePayload(payload) {
   if (payload instanceof Buffer) {
     //convertimos el payload a string
-    payload = payload.toString("utf-8");
+    payload = payload.toString("utf8");
 
     //si tenemos un error, retornamos un objeto vacio
     try {
       //JSON.parse() -> convertirmos un strng a un objeto JSON de JS
       payload = JSON.parse(payload);
     } catch (error) {
-      payload = {};
+      payload = null;
     }
 
     return payload;

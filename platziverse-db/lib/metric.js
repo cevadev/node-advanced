@@ -56,7 +56,8 @@ module.exports = function setupMetric(MetricModel, AgentModel) {
     //si existe el agente
     if (agent) {
       //asignamos al objeto de metric el id del agent
-      metric.agentId = agent.id;
+      Object.assign(metric, { agentId: agent.id });
+      //metric.agentId = agent.id;
       //Object.assign(metric, {agentId: agent.id})
 
       //almacenamos la metric en la BD

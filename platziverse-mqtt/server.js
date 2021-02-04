@@ -14,8 +14,37 @@ const db = require("platziversedb");
 //config para el objeto de base de datos
 const config = require("platziversedb/utils/configdb.js")(false);
 
+/* const config = {
+  database: process.env.DB_NAME || "platziverse",
+  username: process.env.DB_USER || "platzi",
+  password: process.env.DB_PASS || "platzi",
+  host: process.env.DB_HOST || "localhost",
+  dialect: "postgres",
+  logging: (s) => debug(s),
+}; */
+
 const { parsePayload } = require("./utils.js");
-const agent = require("platziversedb/models/agent");
+const agent = require("platziversedb/models/agent.js");
+
+/* const payload = {
+  agent: {
+    uuid: "xxx",
+    name: "Carlos V.",
+    username: "barcvilla",
+    pid: 123,
+    hostname: "platziMaracaibo",
+  },
+  metrics: [
+    {
+      type: "memory",
+      value: "1024",
+    },
+    {
+      type: "temp",
+      value: "34",
+    },
+  ],
+}; */
 
 //Instanciamos la funcion de BD y obtener los servicios de agent y metric
 //definimos los servicios agent y metric
@@ -54,9 +83,41 @@ server.on("clientConnected", (client) => {
   clients.set(client.id, null);
 });
 
-//evento cuando un cliente se desconecta
-server.on("clientDisconnected", (client) => {
+//evento cuando un cliente se desconecta, verificamos si tenemos un agent con ese client id para marcarle la propiedad
+//connected: false
+server.on("clientDisconnected", async (client) => {
   debug(`Client disconnected: ${client.id}`);
+  //obtenemos el client del map
+  const agent = clients.get(client.id);
+
+  //validamos si tenemos un agent
+  if (agent) {
+    //marcamos al agente como disconnected
+    agent.connected = false;
+
+    //actualzamos la info del agent en el BD, si no existe el agent lo creará
+    try {
+      await Agent.createOrUpdate(agent);
+    } catch (error) {
+      return handleError(error);
+    }
+
+    //quitamos el client de nuestro map porque ya se desconectó
+    clients.delete(client.id);
+
+    //notificamos el evento de desconexion
+    server.publish({
+      topic: "agent/disconnected",
+      payload: JSON.stringify({
+        agent: {
+          uuid: agent.uuid,
+        },
+      }),
+    });
+    debug(
+      `Client (${client.id}) associated to Agent (${agent.uuid}) was marked as adisconnected`
+    );
+  }
 });
 
 //evento cuando se publica un mensaje: recibimos un paquete y el cliente que envio el paquete
@@ -77,6 +138,7 @@ server.on("published", async (packet, client) => {
       //obtenemos el mensaje enjson que nos envia el agente de monitoreo procesarlo y almacenarlo en la BD
       //convertimos a JSON el payload que nos llega del packet
       const payload = parsePayload(packet.payload);
+
       //verificamos que nos haya llegado el payload
       if (payload) {
         //le definimos propiedades al agent. el agente está conectado porque estamos recibiendo un mensaje del agente
@@ -91,34 +153,43 @@ server.on("published", async (packet, client) => {
           //a un mensaje correcto
           return handleError(error);
         }
+        debug(`Agent ${agent.uuid} saved`);
+
+        //notificamos que el agent esta conectado. verificamos si el map clients no tienen un agente con el id del client
+        //del que recibimos el mensaje, si no lo tiene el map lo agregamos al mismo
+        if (!clients.get(client.id)) {
+          // Vamos hacer un broadcast o notificar a todos los clientes que esten conectados en este evento o
+          //broker que un agente se conectó
+          clients.set(client.id, agent);
+          server.publish({
+            topic: "agent/connected",
+            payload: JSON.stringify({
+              agent: {
+                uuid: agent.uuid,
+                name: agent.name,
+                username: agent.username,
+                hostname: agent.hostname,
+                pid: agent.pid,
+                connected: agent.connected,
+              },
+            }),
+          });
+        }
+
+        //IMPLEMENTACION PARA ALMACENAR LAS METRICS
+        //dentro del payload tenemos un array metrics, iteramos sobre este array para obtener las metricas
+        //utilizamos el for of ya que dentro vamos a utilizar operaciones async await para almacenar las metricas
+        for (let metric of payload.metrics) {
+          let m;
+          //creamos una metrica
+          try {
+            m = await Metric.create(agent.uuid, metric);
+          } catch (error) {
+            return handleError(error);
+          }
+          debug(`Metric ${m.id} saved on agent ${agent.uuid}`);
+        }
       }
-      debug(`Agent ${agent.uuid} saved`);
-
-      //notificamos que el agent esta conectado. verificamos si el map clients no tienen un agente con el id del client
-      //del que recibimos el mensaje, si no lo tiene el map lo agregamos al mismo
-      if (!clients.get(client.id)) {
-        // Vamos hacer un broadcast o notificar a todos los clientes que esten conectados en este evento o
-        //broker que un agente se conectó
-        clients.set(client.id, agent);
-
-        clients.set(client.id, agent);
-        server.publish({
-          topic: "agent/connected",
-          payload: JSON.stringify({
-            agent: {
-              uuid: agent.uuid,
-              name: agent.name,
-              username: agent.username,
-              hostname: agent.hostname,
-              pid: agent.pid,
-              connected: agent.connected,
-            },
-          }),
-        });
-      }
-
-      //IMPLEMENTACION PARA ALMACENAR LAS METRICS VA AQUI///
-
       break;
   }
 });
@@ -129,11 +200,13 @@ server.on("published", async (packet, client) => {
 //cada vez que hacemos la conexion, mqtt se va a conectar a la BD
 server.on("ready", async () => {
   //instanciamos la BD
-  const services = db(config).catch(handleFatalError);
+  const services = await db(config).catch(handleFatalError);
 
   //seteamos el objeto Agent y Metric
   Agent = services.Agent;
   Metric = services.Metric;
+
+  //console.info(`info del agent ${Agent}`);
 
   console.info(`${chalk.green("[platziverse-mqtt]")} server is running`);
 });
