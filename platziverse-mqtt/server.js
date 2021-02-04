@@ -179,7 +179,22 @@ server.on("published", async (packet, client) => {
         //IMPLEMENTACION PARA ALMACENAR LAS METRICS
         //dentro del payload tenemos un array metrics, iteramos sobre este array para obtener las metricas
         //utilizamos el for of ya que dentro vamos a utilizar operaciones async await para almacenar las metricas
-        for (let metric of payload.metrics) {
+        //con Promise.all() logramos que el almacenamiento de todas las metricas sea en paralelo es decir en bloque, es mas optimo
+        let result;
+        try {
+          const promises = payload.metrics.map((m) =>
+            Metric.create(agent.uuid, m)
+          );
+          result = await Promise.all(promises);
+        } catch (error) {
+          handleFatalError(error);
+        }
+        result.map((r) => {
+          debug(`Metric ${r.id} saved on agent ${agent.uuid}`);
+        });
+
+        //con el for of intentamos almacenar un metrica y luego pasa a la siguiente y asi, no es la manera mas eficiente
+        /*  for (let metric of payload.metrics) {
           let m;
           //creamos una metrica
           try {
@@ -188,7 +203,7 @@ server.on("published", async (packet, client) => {
             return handleError(error);
           }
           debug(`Metric ${m.id} saved on agent ${agent.uuid}`);
-        }
+        } */
       }
       break;
   }
