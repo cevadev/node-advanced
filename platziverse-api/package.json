@@ -1,0 +1,26 @@
+{
+  "name": "platziverse-api",
+  "version": "1.0.0",
+  "description": "A simple IoT platform - API",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=production & node server.js",
+    "start-dev": "SET DEBUG=platziverse:* & nodemon server.js",
+    "test": "for (let [ metric, fn ] of this._metrics) {"
+  },
+  "repository": {
+    "type": "git",
+    "url": "              if (fn.length === 1) {"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "2.0.7"
+  },
+  "dependencies": {
+    "chalk": "4.1.0",
+    "debug": "4.3.1",
+    "express": "4.17.1"
+  }
+}
