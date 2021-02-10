@@ -4,7 +4,69 @@ const test = require("ava");
 //supertest nos permite realizar peticiones http con assertions
 const request = require("supertest");
 //importamos el server
-const server = require("../server.js");
+//const server = require("../server.js");
+
+const sinon = require("sinon");
+const proxyquire = require("proxyquire");
+
+//fixtures
+const agentFixtures = require("./fixtures/agent.js");
+
+//cada vez que ejecutamos una prueba creamos un sandbox de sinon
+let sandbox = null;
+//server donde realizaremos el stub
+let server = null;
+//stub del objeto de base de datos
+let dbStub = null;
+let token = null;
+let AgentStub = {};
+let MetricStub = {};
+
+//Implementacion de sinon
+//Hook beforeEach -> definimos un hook que se ejecutara antes de cada uno de los test
+test.beforeEach(async () => {
+  //1. creacion del sandbox
+  sandbox = sinon.createSandbox();
+
+  //2. definimos los stubs de Base de datos
+  dbStub = sandbox.stub();
+  //cuando llamamos a la funcion, va a retornar una promesa que resuelva para el Agent retorna el AgentStub
+  //para las Metric retorna el MetricStub
+  dbStub.returns(
+    Promise.resolve({
+      Agent: AgentStub,
+      Metric: MetricStub,
+    })
+  );
+
+  //3. definimos las funciones a las que llamaremos en el stub
+  AgentStub.findConnected = sandbox.stub();
+  //cada vez que llamamos a findConnected() retornamos una promera que al ser resuelta retorna los agents connected
+  AgentStub.findConnected.returns(Promise.resolve(agentFixtures.connected));
+
+  //4. Obtenemos el modulos api, para sobrescribir el stub de la BD
+  //decimos: en el modulo API cada vez que realicen un require de platziverse-db se debe retornar el dbStub que se acaba de crear
+  const api = proxyquire("../api", {
+    "platziverse-db": dbStub,
+  });
+
+  //5. Creamos una instancia del servidor con proxyquire, cada vez que se requiera el /api del server retornamos el api creado
+  //en el paso 4, que es el que tiene el dbStub
+
+  server = proxyquire("../server", {
+    "./api": api,
+  });
+
+  //Con estos anidamos los dos llamados: En el archivo server.js cuando se haga require del archivo api.js se debe retornar
+  //el objeto sobreescrito en el paso 4.
+
+  //Cuando el modulo api.js hace require de platziverse-db lo que se debe retornar es el dbStub creado
+});
+
+test.afterEach(() => {
+  //si existe el sandbox lo restauramos
+  sandbox && sinon.restore();
+});
 
 //1. test: hacemos test a una funcion callback (cb), para trabajar con funciones async - await solo usamos test.serial
 //supertest trabaja con callbacks, asi que vamos a definir en ava el .cb asi podemos indicar la finalizacion del test
@@ -20,8 +82,20 @@ test.serial.cb("/api/agents", (t) => {
     //cuando termina la peticion tenemos el error y la respuesta
     .end((err, res) => {
       t.falsy(err, "should not return an error");
-      let body = res.body;
-      t.deepEqual(body, {}, "response body should be the expected");
+      let body = JSON.stringify(res.body);
+      //obtenemos los agents connected cuando se hace una peticion get a /api/agents
+      let expected = JSON.stringify(agentFixtures.connected);
+      t.deepEqual(body, expected, "response body should be the expected");
       t.end();
     });
 });
+
+test.serial.todo("/api/agents - not authorized");
+test.serial.todo("/api/agent/:uuid");
+test.serial.todo("/api/agent/:uuid - not found");
+
+test.serial.todo("/api/metrics/:uuid");
+test.serial.todo("/api/metrics/:uuid - not found");
+
+test.serial.todo("/api/metrics/:uuid/:type");
+test.serial.todo("/api/metrics/:uuid/:type - not found");
