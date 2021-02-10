@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/cevadev/node-advanced/issues"
   },
-  "homepage": "https://github.com/cevadev/node-advanced#readme"
+  "homepage": "https://github.com/cevadev/node-advanced#readme",
+  "dependencies": {
+    "debug": "4.3.1"
+  }
 }
