@@ -4,6 +4,9 @@ const debug = require("debug")("platziverse:api:routes");
 const express = require("express");
 const asyncify = require("express-asyncify");
 
+//importamos el modulo para autentica rutas
+const auth = require("express-jwt");
+
 //instanciamos la clase Router de express, aplicamos asyncify que nos permite soportar async/await en las rutas
 const api = asyncify(express.Router());
 
@@ -40,12 +43,28 @@ api.use("*", async (req, res, next) => {
 
 //definimos las rutas para el servidor de express
 //1.ruta get ('/agents') -< nos retorna los agents conectados al servidor y de la base de datos
-api.get("/agents", async (req, res, next) => {
+//pasamos un middleware auth('key_secret') como segundo argumento
+api.get("/agents", auth(config.auth), async (req, res, next) => {
   debug("A request has come to /agents");
+
+  //una vez autenticados obtenemos el usuario. el middleware auth() setea la propiedad user dentro del objeto request
+  //podemos obtener el payload del JWT en la propiedad user del objeto request
+  const { user } = req;
+  //validamos si tenemos un user o el objeto user posee un username
+  if (!user || !user.username) {
+    return next(new Error("Not authorized"));
+  }
+
   //definimos un arreglo de agents
   let agents = [];
   try {
-    agents = await Agent.findConnected();
+    if (user.admin) {
+      //si es admin obtenemos todos los agents
+      agents = await Agent.findConnected();
+    } else {
+      //obtenemos solo los agents que corresponde al user
+      agents = await Agent.findByUsername(user.username);
+    }
   } catch (e) {
     return next(e);
   }
