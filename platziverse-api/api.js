@@ -16,10 +16,14 @@ const db = require("platziversedb");
 //obtenemos el objeto de configuracion
 const config = require("platziverseutils/configDB");
 
+//lo ejecutamos como una funcion, por ello los parentesis ()
+const guard = require("express-jwt-permissions")();
+
 let services, Agent, Metric;
 
 //manejo de errores
 const { AgentNotFoundError, MetricsNotFoundError } = require("./errors.js");
+const configDB = require("platziverseutils/configDB");
 
 //creamos la instancia de la bd una sola vez, cuando se realiza una peticion y la bd no existe, entonces creamos la instancia de BD
 //llamamos a un middleware de interseccion es decir, el middleware se ejecutara cada vez que se realiza una peticion
@@ -95,23 +99,30 @@ api.get("/agent/:uuid", async (req, res, next) => {
 });
 
 //3.ruta get ('/metrics/:uuid')-> obtenemos las metrics del agente segun el parametro uuid que se pase
-api.get("/metrics/:uuid", async (req, res, next) => {
-  const { uuid } = req.params;
-  debug(`request to /metrics/${uuid}`);
-  let metrics = [];
-  try {
-    metrics = await Metric.findByAgentUuid(uuid);
-  } catch (e) {
-    return next(e);
-  }
+//antes de usar el middleware de permisos debemos ejecutar el middleware de autenticacion jwt
+//el middleware de permisos verificara que el token tenga los siguientes permisos: metrics:reads
+api.get(
+  "/metrics/:uuid",
+  auth(configDB.auth),
+  guard.check(["metrics:read"]),
+  async (req, res, next) => {
+    const { uuid } = req.params;
+    debug(`request to /metrics/${uuid}`);
+    let metrics = [];
+    try {
+      metrics = await Metric.findByAgentUuid(uuid);
+    } catch (e) {
+      return next(e);
+    }
 
-  //error si metricas son undefined o longitud === 0
-  if (!metrics || metrics.length === 0) {
-    return next(new MetricsNotFoundError(uuid));
-  }
+    //error si metricas son undefined o longitud === 0
+    if (!metrics || metrics.length === 0) {
+      return next(new MetricsNotFoundError(uuid));
+    }
 
-  res.send({ metrics });
-});
+    res.send({ metrics });
+  }
+);
 
 //4. ruta get ('/metrics/:uuid/:type')-> obtenemos todas las metricas segun el type del agent segun uuid
 api.get("/metrics/:uuid/:type", async (req, res, next) => {

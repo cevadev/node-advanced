@@ -3,6 +3,10 @@
 const test = require("ava");
 //supertest nos permite realizar peticiones http con assertions
 const request = require("supertest");
+
+//importamos el modulo util de nodejs
+const util = require("util");
+
 //importamos el server
 //const server = require("../server.js");
 
@@ -11,6 +15,13 @@ const proxyquire = require("proxyquire");
 
 //fixtures
 const agentFixtures = require("./fixtures/agent.js");
+
+//importamos modulo para crear tokens
+const auth = require("../auth.js");
+const configDB = require("platziverseutils/configDB");
+
+//funcion sign para crear el jwt
+const sign = util.promisify(auth.sign);
 
 //cada vez que ejecutamos una prueba creamos un sandbox de sinon
 let sandbox = null;
@@ -44,13 +55,16 @@ test.beforeEach(async () => {
   //cada vez que llamamos a findConnected() retornamos una promera que al ser resuelta retorna los agents connected
   AgentStub.findConnected.returns(Promise.resolve(agentFixtures.connected));
 
-  //4. Obtenemos el modulos api, para sobrescribir el stub de la BD
+  //4. creamos el token
+  token = await sign({ admin: true, username: "platzi" }, configDB.auth.secret);
+
+  //5. Obtenemos el modulos api, para sobrescribir el stub de la BD
   //decimos: en el modulo API cada vez que realicen un require de platziverse-db se debe retornar el dbStub que se acaba de crear
   const api = proxyquire("../api", {
     "platziverse-db": dbStub,
   });
 
-  //5. Creamos una instancia del servidor con proxyquire, cada vez que se requiera el /api del server retornamos el api creado
+  //6. Creamos una instancia del servidor con proxyquire, cada vez que se requiera el /api del server retornamos el api creado
   //en el paso 4, que es el que tiene el dbStub
 
   server = proxyquire("../server", {
@@ -75,6 +89,8 @@ test.serial.cb("/api/agents", (t) => {
   request(server)
     //indicamos la ruta a la que hacemos ges
     .get("/api/agents")
+    //seteamos el header para utilizar el token
+    .set("Authorization", `Bearer ${token}`)
     //esperamos una respuesta sttus code 200
     .expect(200)
     //el contenido de la respuesta sea de tipo json
