@@ -1,0 +1,31 @@
+{
+  "name": "platziverse-web",
+  "version": "1.0.0",
+  "description": "A simple IoT platform - web Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=production && node server.js",
+    "start-dev": "SET DEBUG=platziverse:* && nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cevadev/node-advanced.git"
+  },
+  "author": "Carlos V.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cevadev/node-advanced/issues"
+  },
+  "homepage": "https://github.com/cevadev/node-advanced#readme",
+  "devDependencies": {
+    "nodemon": "2.0.7"
+  },
+  "dependencies": {
+    "chalk": "4.1.0",
+    "debug": "4.3.1",
+    "express": "4.17.1",
+    "socketio": "1.0.0",
+    "platziverse-agent": "file:../platziverse-agent"
+  }
+}

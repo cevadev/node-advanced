@@ -2,7 +2,7 @@
   "name": "platziverse-utils",
   "version": "1.0.0",
   "description": "A simple IoT platform - Utils module",
-  "main": "index.js",
+  "main": "configDB.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

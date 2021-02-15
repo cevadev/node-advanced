@@ -15,7 +15,7 @@ const mqtt = require("mqtt");
 
 const defaults = require("defaults");
 
-const { parsePayload } = require("platziverse-utils");
+const { parsePayload } = require("./utils.js");
 
 //modulo que genera un unico uuid
 const uuid = require("uuid");
@@ -38,14 +38,14 @@ const options = {
 //obtenemos la clase EventEmitter del paquete events de nodejs
 const EventEmitter = require("events");
 
-const options = {
+/* const options = {
   name: "untitled",
   username: "platzi",
   interval: 5000,
   mqtt: {
     host: "mqtt://localhost",
   },
-};
+}; */
 
 /**
  *
@@ -157,7 +157,8 @@ class PlatziverseAgent extends EventEmitter {
       //payload ->
       this._client.on("message", (topic, payload) => {
         //implementacion de la recepcion del mensaje
-        payload = parsePayload(payload); //aplicamos un formato JSON al payload que viene como un string
+        //aplicamos un formato JSON al payload que viene como un string
+        payload = parsePayload(payload);
 
         //re-transmitimos (broadcast) el mensaje dependiendo de:
         let broadcast = false;
