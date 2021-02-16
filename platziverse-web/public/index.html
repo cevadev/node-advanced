@@ -35,24 +35,7 @@
     </div>
   </header>
   <div id="app"></div>
-  <script type="text/javascript">
-  //el objeto io proviene de la integracion automatica entre express y socketio
-    var socket = io()
-    socket.on('agent/message', function(payload){
-      console.info('agent/message', payload)
-    });
-
-    socket.on('agent/connected', function(payload){
-      console.info('agent/connected', payload)
-    });
-
-    socket.on('agent/connected', function (payload) {
-      console.info('agent/connected', payload)
-    });
-
-    socket.on('agent/disconnected', function (payload) {
-      console.info('agent/disconnected', payload)
-    });
+  <script type="text/javascript" src="./bundle.js">
   </script>
 </body>
 </html>

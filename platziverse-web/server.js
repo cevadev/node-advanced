@@ -11,10 +11,13 @@ const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
 
+const proxy = require("./proxy.js");
+const asyncify = require("express-asyncify");
+
 //importamos la clase Agent para utilizarlo en el proyecto
 const PlatziverseAgent = require("platziverse-agent");
 
-const app = express();
+const app = asyncify(express());
 const server = http.createServer(app);
 
 //creamos la instancia de socketio y pasamos la instancia del servidor que creamos
@@ -29,6 +32,10 @@ const agent = new PlatziverseAgent();
 //utilizamos el middleware de express llamado static para montar un static server, pasamos la ruta del directorio de recursos static
 //__dirname representa la ubicacion actual donde se corre el script, public representa la carpeta con los recursos
 app.use(express.static(path.join(__dirname, "public")));
+
+//montamos el proxy para que cada vez que se realice una peticion a las rutas, la ruta se encargara de hacer la peticion
+//nuevamente al modulos platziverse-api, para hacer esos pedidos utilzamos un cliente http basado en promesas
+app.use("/", proxy);
 
 //puerto para la app web
 const port = process.env.PORT || 8080;

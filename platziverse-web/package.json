@@ -5,12 +5,15 @@
   "main": "server.js",
   "scripts": {
     "start": "NODE_ENV=production && node server.js",
+    "prestart": "npm run build",
     "start-dev": "SET DEBUG=platziverse:* && nodemon server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prestart-dev": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify -t babelify -t vueify client/app.js -o public/bundle.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/cevadev/node-advanced.git"
+    "url": "git+https://github.com/cevadev/node-advanced.git"
   },
   "author": "Carlos V.",
   "license": "MIT",
@@ -19,13 +22,25 @@
   },
   "homepage": "https://github.com/cevadev/node-advanced#readme",
   "devDependencies": {
-    "nodemon": "2.0.7"
+    "@babel/core": "7.12.16",
+    "@babel/preset-env": "7.12.16",
+    "babel-plugin-transform-runtime": "6.23.0",
+    "babelify": "10.0.0",
+    "browserify": "17.0.0",
+    "nodemon": "2.0.7",
+    "vueify": "9.4.1"
   },
   "dependencies": {
     "chalk": "4.1.0",
+    "chart.js": "2.9.4",
     "debug": "4.3.1",
     "express": "4.17.1",
+    "express-asyncify": "1.0.1",
+    "platziverse-agent": "file:../platziverse-agent",
+    "request": "2.88.2",
+    "request-promise-native": "1.0.9",
     "socketio": "1.0.0",
-    "platziverse-agent": "file:../platziverse-agent"
+    "vue": "2.6.12",
+    "vue-chartjs": "3.5.1"
   }
 }
